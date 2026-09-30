@@ -28,6 +28,21 @@ export interface AttendanceSummary {
   percent: number | null;
 }
 
+export interface PointsSummary {
+  appearances: number;
+  manOfTheMatch: number;
+  yellowCards: number;
+  redCards: number;
+  points: number;
+}
+
+export interface PointsRules {
+  appearance: number;
+  manOfTheMatch: number;
+  yellowCard: number;
+  redCard: number;
+}
+
 export interface Player extends PlayerSummary {
   position: string | null;
   batch: string | null;
@@ -39,9 +54,25 @@ export interface Player extends PlayerSummary {
   birthday?: string | null;
   contactNo?: string | null;
   attendance: AttendanceSummary;
+  points: PointsSummary;
+}
+
+export interface PlayerMatch {
+  id: string;
+  opponent: string;
+  date: string;
+  result: MatchResult | null;
+  scoreFor: number | null;
+  scoreAgainst: number | null;
+  tournament: { id: string; name: string } | null;
+  yellowCards: number;
+  redCards: number;
+  manOfTheMatch: boolean;
+  points: number;
 }
 
 export interface PlayerDetail extends Player {
+  matchHistory: PlayerMatch[];
   recentAttendance: {
     id: string;
     status: AttendanceStatus;
@@ -96,6 +127,28 @@ export interface Match {
   scoreFor: number | null;
   scoreAgainst: number | null;
   tournament?: { id: string; name: string } | null;
+  manOfTheMatch?: { id: string; name: string; profilePicUrl: string | null } | null;
+  _count?: { appearances: number };
+}
+
+export interface MatchAppearance {
+  yellowCards: number;
+  redCards: number;
+  player: PlayerSummary & { position: string | null };
+}
+
+export interface MatchReport extends Match {
+  appearances: MatchAppearance[];
+}
+
+export interface PointsRow extends PointsSummary {
+  id: string;
+  attendance: AttendanceSummary;
+  name: string;
+  jerseyNumber: number | null;
+  profilePicUrl: string | null;
+  position: string | null;
+  batch: string | null;
 }
 
 export interface Tournament {

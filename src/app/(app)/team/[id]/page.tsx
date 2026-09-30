@@ -1,11 +1,13 @@
 "use client";
 
-import { ArrowLeft, CalendarX, Pencil, UserX } from "lucide-react";
+import { ArrowLeft, CalendarX, Pencil, Swords, UserX } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { cn } from "cn";
 import { useCurrentUser } from "@/components/app-shell";
+import { CardCounts, CardIcon, MotmStar } from "@/components/card-icons";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState, ErrorState } from "@/components/empty-state";
 import { PlayerAvatar } from "@/components/player-avatar";
@@ -13,12 +15,13 @@ import { PlayerFormDialog } from "@/components/player-form-dialog";
 import { AttendanceStatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { errorMessage } from "@/lib/api";
 import { formatDate, formatPercent, formatPlainDate, formatTime, SESSION_TYPE_LABELS } from "@/lib/format";
+import { formatPoints, POINTS } from "@/lib/points";
 import { useDeactivatePlayer, usePlayer, useSavePlayer } from "@/lib/queries";
 
 export default function PlayerPage() {
@@ -105,7 +108,7 @@ export default function PlayerPage() {
         )}
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Attendance</CardTitle>
@@ -120,12 +123,45 @@ export default function PlayerPage() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Points</CardTitle>
+            <CardDescription>From match reports</CardDescription>
+            <CardAction>
+              <Link href="/points" className="text-sm underline-offset-4 hover:underline">
+                Leaderboard
+              </Link>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <div className={cn("text-4xl font-semibold tracking-tight tabular-nums", p.points.points < 0 && "text-status-critical")}>{p.points.points}</div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm sm:grid-cols-4">
+              {[
+                { label: "Played", value: p.points.appearances, pts: p.points.appearances * POINTS.appearance, icon: null },
+                { label: "Man of the match", value: p.points.manOfTheMatch, pts: p.points.manOfTheMatch * POINTS.manOfTheMatch, icon: <MotmStar className="size-3.5" /> },
+                { label: "Yellow cards", value: p.points.yellowCards, pts: p.points.yellowCards * POINTS.yellowCard, icon: <CardIcon color="yellow" /> },
+                { label: "Red cards", value: p.points.redCards, pts: p.points.redCards * POINTS.redCard, icon: <CardIcon color="red" /> },
+              ].map((s) => (
+                <div key={s.label}>
+                  <dt className="flex items-center gap-1 text-xs text-muted-foreground">
+                    {s.icon}
+                    {s.label}
+                  </dt>
+                  <dd className="tabular-nums">
+                    {s.value} <span className="text-xs text-muted-foreground">({formatPoints(s.pts)})</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+            <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
               {details.map(([label, value]) => (
                   <div key={label}>
                     <dt className="text-xs text-muted-foreground">{label}</dt>
@@ -136,6 +172,55 @@ export default function PlayerPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Matches</CardTitle>
+          <CardDescription>Last 20 matches played, with points earned</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {p.matchHistory.length === 0 ? (
+            <EmptyState icon={Swords} title="No matches yet" description="Matches appear here once they're in a match report." />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Match</TableHead>
+                  <TableHead className="hidden sm:table-cell">Score</TableHead>
+                  <TableHead>Cards</TableHead>
+                  <TableHead className="text-right">Points</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {p.matchHistory.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-1.5 font-medium">
+                        vs {m.opponent}
+                        {m.manOfTheMatch && (
+                          <span className="inline-flex items-center gap-0.5 text-xs font-normal text-muted-foreground" title="Man of the match">
+                            <MotmStar className="size-3.5" />
+                            MOTM
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatDate(m.date)}
+                        {m.tournament && ` · ${m.tournament.name}`}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden tabular-nums sm:table-cell">{m.scoreFor !== null ? `${m.scoreFor}–${m.scoreAgainst}` : "—"}</TableCell>
+                    <TableCell>
+                      <CardCounts yellow={m.yellowCards} red={m.redCards} />
+                    </TableCell>
+                    <TableCell className={cn("text-right font-medium tabular-nums", m.points < 0 && "text-status-critical")}>{formatPoints(m.points)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

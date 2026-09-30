@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useForm } from "react-hook-form";
+import { cn } from "cn";
 import { z } from "zod";
 import { ErrorState } from "@/components/empty-state";
 import { TextField } from "@/components/form-fields";
@@ -55,7 +56,7 @@ function LoginForm() {
             </Button>
             <Link
               href={next === "/dashboard" ? "/register" : `/register?next=${encodeURIComponent(next)}`}
-              className={buttonVariants({ variant: "outline", size: "lg" })}
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "border-foreground/15 dark:border-input")}
             >
               Sign up
             </Link>

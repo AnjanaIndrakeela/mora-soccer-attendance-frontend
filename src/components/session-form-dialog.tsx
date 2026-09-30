@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FieldGroup } from "@/components/ui/field";
 import { formatDate, SESSION_TYPE_LABELS, TEAM_TIMEZONE, teamTimeToIso, teamToday } from "@/lib/format";
 import { useSaveSession } from "@/lib/queries";
-import type { SessionType } from "@/lib/types";
+import type { Session, SessionType } from "@/lib/types";
 
 const schema = z
   .object({
@@ -24,7 +24,16 @@ const schema = z
   .refine((v) => v.endTime > v.startTime, { message: "End time must be after the start time", path: ["endTime"] });
 type Values = z.infer<typeof schema>;
 
-export function SessionFormDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function SessionFormDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** Called with the new session, e.g. to show its QR code right away. */
+  onCreated?: (session: Session) => void;
+}) {
   const save = useSaveSession();
   const { register, handleSubmit, formState, reset } = useForm<Values>({ resolver: zodResolver(schema) });
 
@@ -43,6 +52,7 @@ export function SessionFormDialog({ open, onOpenChange }: { open: boolean; onOpe
         onSuccess: (s) => {
           toast.success(`${SESSION_TYPE_LABELS[s.type]} session created for ${formatDate(s.startTime)}`);
           onOpenChange(false);
+          onCreated?.(s);
         },
       },
     );

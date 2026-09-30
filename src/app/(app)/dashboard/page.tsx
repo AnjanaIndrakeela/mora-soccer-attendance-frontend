@@ -1,9 +1,10 @@
 "use client";
 
-import { CalendarCheck, LineChart as LineChartIcon, Swords, Trophy, UserCheck, Users } from "lucide-react";
+import { CalendarCheck, LineChart as LineChartIcon, Medal, Swords, Trophy, UserCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { useCurrentUser } from "@/components/app-shell";
 import { AttendanceDonut } from "@/components/charts/attendance-donut";
+import { PointsTable } from "@/components/points-table";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { Countdown } from "@/components/countdown";
 import { EmptyState, ErrorState } from "@/components/empty-state";
@@ -13,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDate, formatPercent } from "@/lib/format";
-import { useAttendanceTrend, useDashboardStats, usePendingClaims, usePlayer } from "@/lib/queries";
+import { useAttendanceTrend, useDashboardStats, usePendingClaims, usePlayer, usePointsTable } from "@/lib/queries";
 import { useState } from "react";
 
 export default function DashboardPage() {
@@ -22,6 +23,8 @@ export default function DashboardPage() {
   const [groupBy, setGroupBy] = useState<"session" | "week">("session");
   const trend = useAttendanceTrend({ groupBy, limit: groupBy === "week" ? 26 : 20 });
   const pending = usePendingClaims(isAdmin);
+  const points = usePointsTable();
+  const topPoints = (points.data?.players ?? []).filter((p) => p.appearances > 0 || p.manOfTheMatch > 0).slice(0, 5);
   const d = stats.data;
 
   return (
@@ -108,6 +111,27 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-2">
+          <div>
+            <CardTitle>Points leaders</CardTitle>
+            <CardDescription>Top 5 from match reports</CardDescription>
+          </div>
+          <Link href="/points" className="text-sm underline-offset-4 hover:underline">
+            Full table
+          </Link>
+        </CardHeader>
+        <CardContent>
+          {points.isPending ? (
+            <Skeleton className="h-40" />
+          ) : topPoints.length ? (
+            <PointsTable rows={topPoints} />
+          ) : (
+            <EmptyState icon={Medal} title="No points yet" description="Points appear once match reports are added on the Tournaments page." />
+          )}
+        </CardContent>
+      </Card>
     </>
   );
 }

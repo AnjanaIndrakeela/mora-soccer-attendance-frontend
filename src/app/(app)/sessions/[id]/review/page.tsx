@@ -47,8 +47,19 @@ export default function ReviewPage() {
   const finalized = session.status === "FINALIZED";
   const open = session.status === "SCHEDULED" || session.status === "ACTIVE";
 
-  const setStatus = (record: AttendanceRecord, status: "APPROVED" | "REJECTED") =>
-    review.mutate({ recordId: record.id, status }, { onError: (err) => toast.error(errorMessage(err)) });
+  const setStatus = (record: AttendanceRecord, status: "APPROVED" | "REJECTED") => {
+    const left = record.status === "PENDING" ? pending - 1 : pending;
+    review.mutate(
+      { recordId: record.id, status },
+      {
+        onSuccess: () =>
+          toast.success(`${status === "APPROVED" ? "Approved" : "Rejected"} ${record.player.name}`, {
+            description: finalized ? "Stats updated." : left > 0 ? `${left} left to review` : "All check-ins reviewed",
+          }),
+        onError: (err) => toast.error(errorMessage(err)),
+      },
+    );
+  };
 
   return (
     <>
@@ -108,13 +119,33 @@ export default function ReviewPage() {
         </div>
       </div>
 
-      {!finalized && (
+      {!finalized && (open || pending > 0) && (
         <p className="text-sm text-muted-foreground">
           {open
-            ? "Check-in is open. New scans appear here automatically."
-            : pending > 0
-              ? `Review the ${pending} pending record${pending === 1 ? "" : "s"}, then finalize.`
-              : "All records reviewed. Finalize to mark everyone else absent and include this session in the stats."}
+            ? "Check-in is open. Players' confirmations appear here automatically. You can approve them now or after the session ends."
+            : `Approve or reject each of the ${pending} pending check-in${pending === 1 ? "" : "s"}, then finalize.`}
+        </p>
+      )}
+
+      {!finalized && !open && pending === 0 && (
+        <div className="flex flex-col gap-3 rounded-xl border border-status-good/40 bg-status-good/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-2 text-sm">
+            <CheckCheck className="mt-0.5 size-4 shrink-0 text-status-good" />
+            <span>
+              <span className="font-medium">All check-ins reviewed.</span> Finalize to mark everyone else absent and update attendance across the site:
+              player percentages, the dashboard and progress charts.
+            </span>
+          </div>
+          <Button onClick={() => setConfirmFinalize(true)} className="shrink-0">
+            <Lock />
+            Finalize &amp; update stats
+          </Button>
+        </div>
+      )}
+
+      {finalized && (
+        <p className="text-sm text-muted-foreground">
+          This session counts towards attendance stats. Changing a record here updates them straight away.
         </p>
       )}
 

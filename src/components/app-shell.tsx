@@ -1,11 +1,11 @@
 "use client";
 
-import { BarChart3, CalendarDays, LayoutDashboard, LogOut, Menu, Trophy, UserRound, Users } from "lucide-react";
-import Image from "next/image";
+import { BarChart3, CalendarDays, LayoutDashboard, LogOut, Medal, Menu, Trophy, UserRound, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "cn";
+import { BrandMark } from "@/components/brand-mark";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ApiError } from "@/lib/api";
 import { useLogout, useMe } from "@/lib/queries";
 import type { User } from "@/lib/types";
@@ -28,6 +29,7 @@ const NAV = [
   { href: "/team", label: "Team", icon: Users },
   { href: "/sessions", label: "Sessions", icon: CalendarDays },
   { href: "/tournaments", label: "Tournaments", icon: Trophy },
+  { href: "/points", label: "Points", icon: Medal },
   { href: "/progress", label: "Progress", icon: BarChart3 },
 ];
 
@@ -44,11 +46,13 @@ function NavLinks({ onNavigate, className }: { onNavigate?: () => void; classNam
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-              active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white",
+              "relative flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              active
+                ? "bg-white/10 text-white after:absolute after:inset-x-3 after:bottom-0.5 after:h-0.5 after:rounded-full after:bg-brand-gradient"
+                : "text-white/70 hover:bg-white/5 hover:text-white",
             )}
           >
-            <Icon className="size-4" />
+            <Icon className={cn("size-4", active && "text-brand")} />
             {label}
           </Link>
         );
@@ -113,8 +117,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = me.data;
 
   return (
-    <div className="flex min-h-dvh flex-1 flex-col bg-muted/40">
-      <header className="sticky top-0 z-40 bg-[#0b0b0b] text-white">
+    <div className="flex min-h-dvh flex-1 flex-col bg-background bg-app-glow bg-fixed">
+      {/* Navy brand bar with a gold gradient hairline, in both themes. */}
+      <header className="sticky top-0 z-40 bg-navy-gradient text-white shadow-lg shadow-navy/20 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-linear-to-r after:from-transparent after:via-brand/70 after:to-transparent">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger
@@ -123,24 +128,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <Menu />
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-[#0b0b0b] text-white">
+            <SheetContent side="left" className="w-64 bg-navy text-white">
               <SheetHeader>
-                <SheetTitle className="text-white">Mora Football</SheetTitle>
+                <SheetTitle className="text-white">
+                  <BrandMark size={28} wordmarkClassName="text-white" />
+                </SheetTitle>
               </SheetHeader>
               <NavLinks onNavigate={() => setMenuOpen(false)} className="flex flex-col gap-1 px-2" />
             </SheetContent>
           </Sheet>
 
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <Image src="/logo.jpg" alt="" width={32} height={32} className="rounded-full" />
-            <span className="hidden sm:inline">
-              Mora <span className="text-brand">Football</span>
-            </span>
+          <Link href="/dashboard" aria-label="Mora Football dashboard">
+            <BrandMark size={28} wordmarkClassName="hidden text-xs text-white lg:inline" />
           </Link>
 
           <NavLinks className="ml-4 hidden items-center gap-1 md:flex" />
 
-          <div className="ml-auto">{user ? <UserMenu user={user} /> : <Skeleton className="size-8 rounded-full bg-white/10" />}</div>
+          <div className="ml-auto flex items-center gap-1">
+            <ThemeToggle className="text-white hover:bg-white/10 hover:text-white aria-expanded:bg-white/10 aria-expanded:text-white" />
+            {user ? <UserMenu user={user} /> : <Skeleton className="size-8 rounded-full bg-white/10" />}
+          </div>
         </div>
       </header>
 

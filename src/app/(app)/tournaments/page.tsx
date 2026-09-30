@@ -2,6 +2,7 @@
 
 import {
   CalendarDays,
+  ClipboardList,
   MapPin,
   Plus,
   Swords,
@@ -11,9 +12,11 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCurrentUser } from "@/components/app-shell";
+import { MotmStar } from "@/components/card-icons";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Countdown } from "@/components/countdown";
 import { EmptyState, ErrorState } from "@/components/empty-state";
+import { MatchReportDialog } from "@/components/match-report-dialog";
 import { PageHeader } from "@/components/page-header";
 import { MatchDialog, TournamentDialog } from "@/components/tournament-dialogs";
 import { Button } from "@/components/ui/button";
@@ -68,6 +71,7 @@ export default function TournamentsPage() {
   const [addingTournament, setAddingTournament] = useState(false);
   const [matchFor, setMatchFor] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Tournament | null>(null);
+  const [reportFor, setReportFor] = useState<string | null>(null);
   const removeTournament = useDeleteTournament();
 
   const all = [...(upcoming.data ?? []), ...(past.data ?? [])];
@@ -226,6 +230,12 @@ export default function TournamentsPage() {
             onOpenChange={(open) => !open && setMatchFor(null)}
             tournaments={all}
             defaultTournamentId={matchFor ?? undefined}
+            // A played match (with a score) goes straight on to its report.
+            onCreated={(m) => m.scoreFor !== null && setReportFor(m.id)}
+          />
+          <MatchReportDialog
+            matchId={reportFor}
+            onOpenChange={(open) => !open && setReportFor(null)}
           />
           <ConfirmDialog
             open={Boolean(deleting)}
@@ -285,6 +295,7 @@ function MatchList({ matches }: { matches: Match[] }) {
   const { isAdmin } = useCurrentUser();
   const remove = useDeleteMatch();
   const [deleting, setDeleting] = useState<Match | null>(null);
+  const [reportFor, setReportFor] = useState<string | null>(null);
   return (
     <>
       <ul className="flex flex-col divide-y text-sm">
@@ -307,6 +318,15 @@ function MatchList({ matches }: { matches: Match[] }) {
                   <div className="text-xs text-muted-foreground">
                     {formatDate(m.date)}
                   </div>
+                  {m.manOfTheMatch && (
+                    <div className="mt-0.5 flex items-center gap-1 text-xs">
+                      <MotmStar className="size-3.5" />
+                      <span className="text-muted-foreground">
+                        Man of the match:
+                      </span>
+                      {m.manOfTheMatch.name}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -315,6 +335,27 @@ function MatchList({ matches }: { matches: Match[] }) {
                     ? `${m.scoreFor} – ${m.scoreAgainst}`
                     : "vs"}
                 </span>
+                {isAdmin && (
+                  <Button
+                    // Played matches without a report stand out.
+                    variant={
+                      m.scoreFor !== null && !m._count?.appearances
+                        ? "outline"
+                        : "ghost"
+                    }
+                    size="xs"
+                    className="ml-1"
+                    onClick={() => setReportFor(m.id)}
+                    title={
+                      m._count?.appearances
+                        ? `${m._count.appearances} players in the report`
+                        : "No report yet"
+                    }
+                  >
+                    <ClipboardList />
+                    {m._count?.appearances ? "Report" : "Add report"}
+                  </Button>
+                )}
                 {isAdmin && (
                   <Button
                     variant="ghost"
@@ -332,11 +373,15 @@ function MatchList({ matches }: { matches: Match[] }) {
           );
         })}
       </ul>
+      <MatchReportDialog
+        matchId={reportFor}
+        onOpenChange={(open) => !open && setReportFor(null)}
+      />
       <ConfirmDialog
         open={Boolean(deleting)}
         onOpenChange={(open) => !open && setDeleting(null)}
         title={`Delete match vs ${deleting?.opponent}?`}
-        description="The match is removed from the record and the stats."
+        description="The match and its report are removed from the record, the stats and players' points."
         confirmLabel="Delete match"
         destructive
         pending={remove.isPending}

@@ -7,6 +7,9 @@
 @theme inline {
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-navy: var(--navy);
+  --color-cream: var(--cream);
   --color-status-good: var(--status-good);
   --color-status-serious: var(--status-serious);
   --color-status-critical: var(--status-critical);
@@ -57,39 +60,44 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  /* Palette: navy #1F2A44, cream #E8DCC8, gold #C6A75E.
+     Light mode: cream-tinted surfaces, navy text, gold as the primary color. */
+  --background: #f4eee3; /* cream #E8DCC8 lifted toward white for long reading */
+  --foreground: #1f2a44;
+  --card: #fffdf9;
+  --card-foreground: #1f2a44;
+  --popover: #fffdf9;
+  --popover-foreground: #1f2a44;
+  --primary: #c6a75e;
+  --primary-foreground: #1f2a44;
+  --secondary: #e8dcc8;
+  --secondary-foreground: #1f2a44;
+  --muted: #ede4d4;
+  --muted-foreground: #5b6479;
+  --accent: #e8dcc8;
+  --accent-foreground: #1f2a44;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e2d6c1;
+  --input: #d9ccb4;
+  --ring: #c6a75e;
   --chart-1: #2a78d6;
   --chart-2: #eb6834;
   --chart-3: #1baf7a;
   --chart-4: #eda100;
   --chart-5: #e87ba4;
-  /* Mora Football brand gold (logo) */
-  --brand: #f5a800;
-  --brand-foreground: #0b0b0b;
+  /* Brand: gold on navy. --brand-text is gold dark enough to read on cream. */
+  --brand: #c6a75e;
+  --brand-foreground: #1f2a44;
+  --brand-text: #7a5f22;
+  --navy: #1f2a44;
+  --cream: #e8dcc8;
   /* Data-viz roles (validated reference palette) */
   --series-1: #2a78d6;
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-serious: #ec835a;
   --status-critical: #d03b3b;
-  --grid: #e1e0d9;
+  --grid: #e2d6c1;
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -102,37 +110,41 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  /* Dark mode: deep navy surfaces built from #1F2A44, cream text, gold primary. */
+  --background: #121a2c;
+  --foreground: #f1ead9;
+  --card: #1a2439;
+  --card-foreground: #f1ead9;
+  --popover: #1f2a44;
+  --popover-foreground: #f1ead9;
+  --primary: #c6a75e;
+  --primary-foreground: #1f2a44;
+  --secondary: #26334f;
+  --secondary-foreground: #f1ead9;
+  --muted: #243049;
+  --muted-foreground: #b3ab9b;
+  --accent: #2b3857;
+  --accent-foreground: #f1ead9;
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --border: rgb(232 220 200 / 12%);
+  --input: rgb(232 220 200 / 18%);
+  --ring: #c6a75e;
   --chart-1: #3987e5;
   --chart-2: #d95926;
   --chart-3: #199e70;
   --chart-4: #c98500;
   --chart-5: #d55181;
-  --brand: #f5a800;
-  --brand-foreground: #0b0b0b;
+  --brand: #c6a75e;
+  --brand-foreground: #1f2a44;
+  --brand-text: #d6bc80;
+  --navy: #1f2a44;
+  --cream: #e8dcc8;
   --series-1: #3987e5;
   --status-good: #0ca30c;
   --status-warning: #fab219;
   --status-serious: #ec835a;
   --status-critical: #d03b3b;
-  --grid: #2c2c2a;
+  --grid: #2c3854;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -152,5 +164,42 @@
   }
   html {
     @apply font-sans;
+  }
+}
+/* Brand gold gradient (#C6A75E): primary buttons, icon chips and accent lines. */
+@utility bg-navy-gradient {
+  background-image: linear-gradient(100deg, #18223a 0%, #1f2a44 45%, #2a3a5e 100%);
+}
+
+/* Brand gold gradient: primary buttons, icon chips and accent lines. */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, #dcc38a 0%, #c6a75e 50%, #a8883f 100%);
+}
+
+/* Page backdrop: soft gold light top-right, a hint of navy top-left. */
+@utility bg-app-glow {
+  background-image:
+    radial-gradient(60rem 28rem at 100% -10%, rgb(198 167 94 / 0.18), transparent 60%),
+    radial-gradient(40rem 22rem at -10% -5%, rgb(31 42 68 / 0.08), transparent 60%);
+}
+
+/* Auth pages: slow photo push-in and the form card rising into place. */
+@keyframes auth-zoom {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes auth-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

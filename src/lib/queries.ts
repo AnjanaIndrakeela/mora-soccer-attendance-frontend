@@ -7,9 +7,12 @@ import type {
   AttendanceStatus,
   DashboardStats,
   Match,
+  MatchReport,
   PendingClaim,
   Player,
   PlayerDetail,
+  PointsRow,
+  PointsRules,
   ProgressStats,
   Session,
   SessionQr,
@@ -91,7 +94,7 @@ export function useResetPassword() {
 // ---------- Players ----------
 
 export interface PlayerListParams {
-  sort?: "attendance" | "name" | "number";
+  sort?: "attendance" | "points" | "name" | "number";
   limit?: number;
   includeInactive?: boolean;
   search?: string;
@@ -217,6 +220,23 @@ export function useSetPlayerAttendance(sessionId: string) {
   });
 }
 
+export interface CheckInPreview {
+  session: Pick<Session, "id" | "type" | "status" | "startTime" | "endTime">;
+  player: { name: string } | null;
+  record: { id: string; status: AttendanceStatus; scannedAt: string | null } | null;
+  canCheckIn: boolean;
+  reason: string | null;
+}
+
+/** Validates a scanned QR code and shows the session before the player confirms. */
+export function useCheckInPreview(sessionId: string, token: string | null) {
+  return useQuery({
+    queryKey: [...keys.sessions, sessionId, "check-in", token],
+    queryFn: () => api<CheckInPreview>(`/attend/${sessionId}${qs({ t: token })}`),
+    enabled: Boolean(token),
+  });
+}
+
 export function useAttend() {
   const invalidate = useInvalidate();
   return useMutation({
@@ -289,11 +309,33 @@ export function useSaveMatch(id?: string) {
   });
 }
 
+export function useMatchReport(id: string | null) {
+  return useQuery({
+    queryKey: [...keys.matches, id, "report"],
+    queryFn: () => api<MatchReport>(`/matches/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+export interface MatchReportInput {
+  appearances: { playerId: string; yellowCards: number; redCards: number }[];
+  manOfTheMatchId: string | null;
+}
+
+/** Saving a report changes points, so refresh matches, players and stats. */
+export function useSaveMatchReport(id: string) {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: (body: MatchReportInput) => api<MatchReport>(`/matches/${id}/report`, { method: "PUT", body: { ...body } }),
+    onSuccess: () => invalidate(keys.matches, keys.tournaments, keys.players, keys.stats),
+  });
+}
+
 export function useDeleteMatch() {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: (id: string) => api<void>(`/matches/${id}`, { method: "DELETE" }),
-    onSuccess: () => invalidate(keys.tournaments, keys.matches, keys.stats),
+    onSuccess: () => invalidate(keys.tournaments, keys.matches, keys.stats, keys.players),
   });
 }
 
@@ -307,6 +349,13 @@ export function useAttendanceTrend(params: { groupBy?: "session" | "week"; limit
   return useQuery({
     queryKey: [...keys.stats, "trend", params],
     queryFn: () => api<TrendPoint[]>(`/stats/attendance-trend${qs({ ...params })}`),
+  });
+}
+
+export function usePointsTable() {
+  return useQuery({
+    queryKey: [...keys.stats, "points"],
+    queryFn: () => api<{ rules: PointsRules; players: PointsRow[] }>("/stats/points"),
   });
 }
 

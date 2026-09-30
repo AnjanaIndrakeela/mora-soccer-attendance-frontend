@@ -32,7 +32,7 @@ export default function SessionsPage() {
   const [limit, setLimit] = useState(10);
   const sessions = useSessions({ limit });
   const [creating, setCreating] = useState(false);
-  const [qrFor, setQrFor] = useState<Session | null>(null);
+  const [qrFor, setQrFor] = useState<{ session: Session; justCreated: boolean } | null>(null);
   const [ending, setEnding] = useState<Session | null>(null);
   const [deleting, setDeleting] = useState<Session | null>(null);
   const end = useSessionAction("end");
@@ -103,7 +103,7 @@ export default function SessionsPage() {
                       </TableCell>
                       {isAdmin && (
                         <TableCell>
-                          <SessionActions session={s} onQr={() => setQrFor(s)} onEnd={() => setEnding(s)} onDelete={() => setDeleting(s)} />
+                          <SessionActions session={s} onQr={() => setQrFor({ session: s, justCreated: false })} onEnd={() => setEnding(s)} onDelete={() => setDeleting(s)} />
                         </TableCell>
                       )}
                     </TableRow>
@@ -122,8 +122,12 @@ export default function SessionsPage() {
 
       {isAdmin && (
         <>
-          <SessionFormDialog open={creating} onOpenChange={setCreating} />
-          <QrDialog session={qrFor} onOpenChange={(open) => !open && setQrFor(null)} />
+          <SessionFormDialog open={creating} onOpenChange={setCreating} onCreated={(session) => setQrFor({ session, justCreated: true })} />
+          <QrDialog
+            session={qrFor?.session ?? null}
+            title={qrFor?.justCreated ? "Session created: share the QR code" : undefined}
+            onOpenChange={(open) => !open && setQrFor(null)}
+          />
           <ConfirmDialog
             open={Boolean(ending)}
             onOpenChange={(open) => !open && setEnding(null)}

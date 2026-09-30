@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { FieldGroup } from "@/components/ui/field";
 import { teamTimeToIso, teamToday } from "@/lib/format";
 import { useSaveMatch, useSaveTournament } from "@/lib/queries";
-import type { Tournament } from "@/lib/types";
+import type { Match, Tournament } from "@/lib/types";
 
 // ---------- Tournament ----------
 
@@ -116,11 +116,14 @@ export function MatchDialog({
   onOpenChange,
   tournaments,
   defaultTournamentId,
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tournaments: Tournament[];
   defaultTournamentId?: string;
+  /** Called with the new match, e.g. to open its report when it has been played. */
+  onCreated?: (match: Match) => void;
 }) {
   const save = useSaveMatch();
   const { register, handleSubmit, formState, reset } = useForm<MatchValues>({ resolver: zodResolver(matchSchema) });
@@ -147,6 +150,7 @@ export function MatchDialog({
         onSuccess: (m) => {
           toast.success(`Logged match vs ${m.opponent}`);
           onOpenChange(false);
+          onCreated?.(m);
         },
       },
     );
@@ -157,7 +161,7 @@ export function MatchDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Log match</DialogTitle>
-          <DialogDescription>Leave the score empty for a fixture that hasn&apos;t been played yet.</DialogDescription>
+          <DialogDescription>Leave the score empty for a fixture that hasn&apos;t been played yet. With a score, you&apos;ll add the match report (players, cards, man of the match) next.</DialogDescription>
         </DialogHeader>
         <form id="match-form" onSubmit={handleSubmit(onSubmit)} noValidate>
           <FieldGroup className="gap-4">

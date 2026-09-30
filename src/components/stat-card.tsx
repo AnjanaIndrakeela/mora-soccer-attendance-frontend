@@ -18,11 +18,13 @@ export function StatCard({
   children?: React.ReactNode;
 }) {
   return (
-    <Card>
+    <Card className="transition-shadow hover:shadow-md hover:shadow-brand/10">
       <CardContent className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>{label}</span>
-          <Icon className="size-4" />
+          <span className="flex size-8 items-center justify-center rounded-lg bg-brand-gradient text-brand-foreground shadow-sm shadow-brand/30">
+            <Icon className="size-4" />
+          </span>
         </div>
         {loading ? (
           <Skeleton className="h-8 w-20" />

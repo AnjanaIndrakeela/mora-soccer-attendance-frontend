@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,9 +23,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={client}>
-      <TooltipProvider>{children}</TooltipProvider>
-      <Toaster richColors position="top-center" />
-    </QueryClientProvider>
+    // Light by default; the theme toggle offers Dark and System. Adds `.dark` to <html>.
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={client}>
+        <TooltipProvider>{children}</TooltipProvider>
+        <Toaster richColors position="top-center" />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

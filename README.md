@@ -35,13 +35,14 @@ The backend's `CLIENT_URL` must be this app's URL: it is used for CORS, QR-code 
 | --- | --- |
 | `BACKEND_URL` | Backend base URL that `/api/*` is proxied to. **Read at build time**, so rebuild after changing it. |
 | `NEXT_PUBLIC_TEAM_TIMEZONE` | Team timezone (default `Asia/Colombo`). Times are stored in UTC and shown in this zone. |
+| `ALLOWED_DEV_ORIGINS` | Dev only. This computer's LAN IP, so phones can use the dev server (see below). |
 
 ## How it fits together
 
 - **API proxy.** [next.config.ts](next.config.ts) rewrites `/api/*` to the backend, so the browser only ever talks to this origin. The backend's httpOnly `token` cookie is therefore first-party (`SameSite=Lax`), and [src/proxy.ts](src/proxy.ts) (Next 16's name for middleware) can see it to redirect logged-out users to `/login`. The check is optimistic; the backend verifies the JWT on every request.
 - **Data fetching.** All API calls go through [src/lib/api.ts](src/lib/api.ts). [src/lib/queries.ts](src/lib/queries.ts) has one TanStack Query hook per resource; mutations invalidate the related queries (e.g. finalizing a session refreshes sessions, players and stats).
 - **Roles.** Admins see create/edit/review actions. Players get read-only pages plus their own profile; other players' birthday, contact number and index number are never sent to them.
-- **QR check-in.** A session's QR code encodes `CLIENT_URL/attend/{sessionId}?t={token}`. The mobile-first `/attend` page checks the player in, sending them through login first if needed.
+- **QR check-in.** Creating a session opens its QR code straight away, with Download, Share (the device share sheet: WhatsApp, email, …), Copy link and Full screen. The code encodes `CLIENT_URL/attend/{sessionId}?t={token}`. Scanning opens the mobile-first `/attend` page (via login if needed), which shows the session and a **Confirm my attendance** button. The check-in is then `PENDING` until an admin approves it on the review page; finalizing the session updates attendance across the site.
 
 ## Routes
 
@@ -49,11 +50,23 @@ The backend's `CLIENT_URL` must be this app's URL: it is used for CORS, QR-code 
 | --- | --- | --- |
 | `/login`, `/register`, `/forgot-password`, `/reset-password` | Everyone | Auth. Sign-up requires an index number already on the roster. |
 | `/dashboard` | All | Stat cards, next-tournament countdown, attendance donut and trend. |
-| `/team`, `/team/[id]` | All (admins edit) | Top 10 / full roster by attendance, pending sign-ups, add/edit/deactivate players, player profiles. |
+| `/team`, `/team/[id]` | All (admins edit) | Top 10 / full roster by attendance with points, pending sign-ups, add/edit/deactivate players, player profiles with attendance, points and match history. |
 | `/sessions`, `/sessions/[id]/review` | All (admins manage) | Session list, create, QR display/download/full-screen, end, review, approve all, finalize. |
-| `/tournaments` | All (admins edit) | Upcoming tournaments with countdowns, past results, friendlies, add tournament, log match. |
+| `/tournaments` | All (admins edit) | Upcoming tournaments with countdowns, past results, friendlies, add tournament, log match, match reports (who played, cards, man of the match). |
+| `/points` | All | Points leaderboard and the scoring rules (+3 played, +7 man of the match, −1 yellow, −2 red). |
 | `/progress` | All | Trend, by type/batch/position, per-player bars, at-risk list, streaks, W/D/L, date-range filter. |
 | `/attend/[sessionId]` | Players | QR scan landing page. |
+
+## Testing QR check-in on a phone
+
+A phone can't open `localhost`, so point the QR links at this computer's Wi-Fi address:
+
+1. Find the IP with `ipconfig` (the Wi-Fi adapter's IPv4 address, e.g. `10.29.162.47`).
+2. Frontend `.env.local`: `ALLOWED_DEV_ORIGINS=10.29.162.47`
+3. Backend `.env`: `CLIENT_URL=http://10.29.162.47:3000`
+4. Restart both dev servers. Keep the phone on the same Wi-Fi; if Windows asks whether to allow Node.js through the firewall, allow it on private networks.
+
+The IP can change when you reconnect to Wi-Fi; update both files if it does. In production the QR links use the real site URL, so none of this is needed.
 
 ## Scripts
 
@@ -81,7 +94,6 @@ src/
   proxy.ts               # Redirects logged-out users to /login
 public/
   logo.jpg               # Team crest
-  login-bg.svg           # Login background (placeholder pitch; swap for a team photo)
 ```
 
 ## Deploying (Vercel)
@@ -92,6 +104,7 @@ public/
 
 ## Customizing
 
-- **Login background:** replace `public/login-bg.svg`, or put a photo in `public/` and change the `src` in [src/app/(auth)/layout.tsx](<src/app/(auth)/layout.tsx>).
+- **Login photo:** the auth pages (login, sign-up, password reset) show `src/app/MoraTeam.jpeg`. Replace that file, or change the import in [src/app/(auth)/layout.tsx](<src/app/(auth)/layout.tsx>).
+- **Light / dark mode:** the sun/moon button in the navbar (and on the login page) switches Light, Dark or System. The default is Light and the choice is saved per browser ([next-themes](https://github.com/pacocoursey/next-themes), set up in `src/app/providers.tsx`). Dark colors are the `.dark` tokens in `src/app/globals.css`.
 - **Brand colors:** `--brand` and the chart/status tokens are in [src/app/globals.css](src/app/globals.css).
 - **More UI components:** `npx shadcn@latest add <component>`.

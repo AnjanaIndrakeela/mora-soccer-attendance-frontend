@@ -1,28 +1,76 @@
 "use client";
 
-import { Download, Maximize2, X } from "lucide-react";
+import { Check, Copy, Download, Maximize2, Share2, X } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Countdown } from "@/components/countdown";
 import { ErrorState } from "@/components/empty-state";
 import { SessionStatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatTime, formatWeekdayDate, SESSION_TYPE_LABELS } from "@/lib/format";
 import { useSessionQr } from "@/lib/queries";
 import type { Session } from "@/lib/types";
 
-export function QrDialog({ session, onOpenChange }: { session: Session | null; onOpenChange: (open: boolean) => void }) {
+export function QrDialog({
+  session,
+  onOpenChange,
+  title = "Check-in QR code",
+}: {
+  session: Session | null;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+}) {
   const qr = useSessionQr(session?.id ?? null);
   const [fullscreen, setFullscreen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const fileName = session ? `session-${session.startTime.slice(0, 10)}-${session.type.toLowerCase()}-qr.png` : "session-qr.png";
+  const shareText = session
+    ? `Scan to check in: ${SESSION_TYPE_LABELS[session.type]} on ${formatWeekdayDate(session.startTime)}, ${formatTime(session.startTime)}`
+    : "";
 
   const download = () => {
-    if (!qr.data || !session) return;
+    if (!qr.data) return;
     const a = document.createElement("a");
     a.href = qr.data.pngDataUrl;
-    a.download = `session-${session.startTime.slice(0, 10)}-${session.type.toLowerCase()}-qr.png`;
+    a.download = fileName;
     a.click();
+  };
+
+  const copyLink = async () => {
+    if (!qr.data) return;
+    try {
+      await navigator.clipboard.writeText(qr.data.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // The clipboard API needs https or localhost; the link stays selectable in the field.
+      toast.error("Couldn't copy automatically. Select the link and copy it.");
+    }
+  };
+
+  /** Shares the QR image and link through the device's share sheet (WhatsApp, email, …). */
+  const share = async () => {
+    if (!qr.data) return;
+    try {
+      const blob = await (await fetch(qr.data.pngDataUrl)).blob();
+      const file = new File([blob], fileName, { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Session check-in QR", text: `${shareText}\n${qr.data.url}` });
+      } else if (typeof navigator.share === "function") {
+        await navigator.share({ title: "Session check-in QR", text: shareText, url: qr.data.url });
+      } else {
+        await copyLink();
+        toast.info("Sharing isn't available in this browser, so the link was copied instead.");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") return; // share sheet dismissed
+      toast.error("Couldn't share the QR code");
+    }
   };
 
   return (
@@ -32,7 +80,7 @@ export function QrDialog({ session, onOpenChange }: { session: Session | null; o
           {session && (
             <>
               <DialogHeader>
-                <DialogTitle>Check-in QR code</DialogTitle>
+                <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>
                   {SESSION_TYPE_LABELS[session.type]} · {formatWeekdayDate(session.startTime)}, {formatTime(session.startTime)}–{formatTime(session.endTime)}
                 </DialogDescription>
@@ -47,12 +95,23 @@ export function QrDialog({ session, onOpenChange }: { session: Session | null; o
                     <Image src={qr.data.pngDataUrl} alt="Session check-in QR code" width={512} height={512} unoptimized className="h-auto w-full" />
                   </div>
                   <p className="text-center text-xs text-muted-foreground">
-                    Players scan this with their phone camera. The code stops working after the session ends.
+                    Players scan this with their phone camera and confirm their attendance. Check-in is open from 15 minutes before the start until 15
+                    minutes after the end.
                   </p>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="flex gap-2">
+                    <Input readOnly value={qr.data.url} aria-label="Check-in link" onFocus={(e) => e.currentTarget.select()} className="text-xs" />
+                    <Button variant="outline" size="icon" onClick={copyLink} aria-label="Copy check-in link">
+                      {copied ? <Check /> : <Copy />}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
                     <Button variant="outline" onClick={download}>
                       <Download />
                       Download
+                    </Button>
+                    <Button variant="outline" onClick={share}>
+                      <Share2 />
+                      Share
                     </Button>
                     <Button onClick={() => setFullscreen(true)}>
                       <Maximize2 />

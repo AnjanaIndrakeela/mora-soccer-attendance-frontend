@@ -26,14 +26,14 @@ export default function TeamPage() {
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search.trim());
   const [adding, setAdding] = useState(false);
-
+  // Points take priority; attendance % breaks ties.
   const players = usePlayers(
-    showAll ? { sort: "attendance", search: deferredSearch || undefined, includeInactive: isAdmin } : { sort: "attendance", limit: 10 },
+    showAll ? { sort: "points", search: deferredSearch || undefined, includeInactive: isAdmin } : { sort: "points", limit: 10 },
   );
 
   return (
     <>
-      <PageHeader title="Team" description={showAll ? "The full roster, by attendance." : "Top 10 players by attendance."}>
+      <PageHeader title="Team" description={showAll ? "The full roster, ordered by points, then attendance." : "Top 10 players by points, then attendance."}>
         {isAdmin && (
           <Button onClick={() => setAdding(true)}>
             <UserPlus />
@@ -54,7 +54,7 @@ export default function TeamPage() {
               </CardDescription>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {showAll && (
               <div className="relative">
                 <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -84,7 +84,7 @@ export default function TeamPage() {
               description={isAdmin && !deferredSearch ? "Add players to the roster so they can sign up and check in." : undefined}
             />
           ) : (
-            <PlayerTable players={players.data.items} ranked={!showAll} />
+            <PlayerTable players={players.data.items} ranked={!deferredSearch} />
           )}
         </CardContent>
       </Card>
@@ -106,6 +106,9 @@ function PlayerTable({ players, ranked }: { players: NonNullable<ReturnType<type
           <TableHead className="hidden sm:table-cell">Batch</TableHead>
           <TableHead className="hidden sm:table-cell">Position</TableHead>
           <TableHead className="text-right">Attendance</TableHead>
+          <TableHead className="text-right text-foreground" aria-sort="descending">
+            Points
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -134,6 +137,7 @@ function PlayerTable({ players, ranked }: { players: NonNullable<ReturnType<type
                 ({p.attendance.approved}/{p.attendance.total})
               </span>
             </TableCell>
+            <TableCell className={`text-right font-medium tabular-nums ${p.points.points < 0 ? "text-status-critical" : ""}`}>{p.points.points}</TableCell>
           </TableRow>
         ))}
       </TableBody>
