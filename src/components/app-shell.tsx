@@ -118,7 +118,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-1 flex-col bg-background bg-app-glow bg-fixed">
-      {/* Navy brand bar with a gold gradient hairline, in both themes. */}
+      {/* Charcoal brand bar with a teal gradient hairline, in both themes. */}
       <header className="sticky top-0 z-40 bg-navy-gradient text-white shadow-lg shadow-navy/20 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-linear-to-r after:from-transparent after:via-brand/70 after:to-transparent">
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4">
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

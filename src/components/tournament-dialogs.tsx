@@ -10,7 +10,7 @@ import { SelectField, TextAreaField, TextField } from "@/components/form-fields"
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
-import { teamTimeToIso, teamToday } from "@/lib/format";
+import { teamTimeToIso, teamToday, toTeamInputs } from "@/lib/format";
 import { useSaveMatch, useSaveTournament } from "@/lib/queries";
 import type { Match, Tournament } from "@/lib/types";
 
@@ -28,17 +28,40 @@ const tournamentSchema = z
   .refine((v) => !v.endDate || v.endDate >= v.startDate, { message: "End date can't be before the start date", path: ["endDate"] });
 type TournamentValues = z.infer<typeof tournamentSchema>;
 
-export function TournamentDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const save = useSaveTournament();
+/** Adds a tournament, or edits one when `tournament` is given (admins only). */
+export function TournamentDialog({
+  open,
+  onOpenChange,
+  tournament,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  /** The tournament to edit. */
+  tournament?: Tournament | null;
+}) {
+  const editing = Boolean(tournament);
+  const save = useSaveTournament(tournament?.id);
   const { register, handleSubmit, formState, reset } = useForm<TournamentValues>({ resolver: zodResolver(tournamentSchema) });
 
   useEffect(() => {
     if (open) {
-      reset({ name: "", venue: "", startDate: teamToday(), startTime: "08:00", endDate: "", description: "" });
+      if (tournament) {
+        const start = toTeamInputs(tournament.startDate);
+        reset({
+          name: tournament.name,
+          venue: tournament.venue ?? "",
+          startDate: start.date,
+          startTime: start.time,
+          endDate: tournament.endDate ? toTeamInputs(tournament.endDate).date : "",
+          description: tournament.description ?? "",
+        });
+      } else {
+        reset({ name: "", venue: "", startDate: teamToday(), startTime: "08:00", endDate: "", description: "" });
+      }
       save.reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, tournament]);
 
   const onSubmit = (v: TournamentValues) =>
     save.mutate(
@@ -52,7 +75,7 @@ export function TournamentDialog({ open, onOpenChange }: { open: boolean; onOpen
       },
       {
         onSuccess: (t) => {
-          toast.success(`Added ${t.name}`);
+          toast.success(editing ? `Updated ${t.name}` : `Added ${t.name}`);
           onOpenChange(false);
         },
       },
@@ -63,7 +86,7 @@ export function TournamentDialog({ open, onOpenChange }: { open: boolean; onOpen
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add tournament</DialogTitle>
+          <DialogTitle>{editing ? "Edit tournament" : "Add tournament"}</DialogTitle>
           <DialogDescription>The countdown on the dashboard runs to the start date and time.</DialogDescription>
         </DialogHeader>
         <form id="tournament-form" onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -84,7 +107,7 @@ export function TournamentDialog({ open, onOpenChange }: { open: boolean; onOpen
             Cancel
           </Button>
           <Button type="submit" form="tournament-form" disabled={save.isPending}>
-            {save.isPending ? "Saving…" : "Add tournament"}
+            {save.isPending ? "Saving…" : editing ? "Save changes" : "Add tournament"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, CalendarX, ClipboardCheck, MoreHorizontal, QrCode, Square, Trash2 } from "lucide-react";
+import { CalendarPlus, CalendarX, ClipboardCheck, MoreHorizontal, Pencil, QrCode, Square, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +32,9 @@ export default function SessionsPage() {
   const [limit, setLimit] = useState(10);
   const sessions = useSessions({ limit });
   const [creating, setCreating] = useState(false);
+  // Kept after closing so the dialog doesn't flip to "Create" during its exit animation.
+  const [editing, setEditing] = useState<Session | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [qrFor, setQrFor] = useState<{ session: Session; justCreated: boolean } | null>(null);
   const [ending, setEnding] = useState<Session | null>(null);
   const [deleting, setDeleting] = useState<Session | null>(null);
@@ -103,7 +106,16 @@ export default function SessionsPage() {
                       </TableCell>
                       {isAdmin && (
                         <TableCell>
-                          <SessionActions session={s} onQr={() => setQrFor({ session: s, justCreated: false })} onEnd={() => setEnding(s)} onDelete={() => setDeleting(s)} />
+                          <SessionActions
+                            session={s}
+                            onQr={() => setQrFor({ session: s, justCreated: false })}
+                            onEdit={() => {
+                              setEditing(s);
+                              setEditOpen(true);
+                            }}
+                            onEnd={() => setEnding(s)}
+                            onDelete={() => setDeleting(s)}
+                          />
                         </TableCell>
                       )}
                     </TableRow>
@@ -123,6 +135,7 @@ export default function SessionsPage() {
       {isAdmin && (
         <>
           <SessionFormDialog open={creating} onOpenChange={setCreating} onCreated={(session) => setQrFor({ session, justCreated: true })} />
+          <SessionFormDialog open={editOpen} onOpenChange={setEditOpen} session={editing} />
           <QrDialog
             session={qrFor?.session ?? null}
             title={qrFor?.justCreated ? "Session created: share the QR code" : undefined}
@@ -171,7 +184,19 @@ export default function SessionsPage() {
   );
 }
 
-function SessionActions({ session, onQr, onEnd, onDelete }: { session: Session; onQr: () => void; onEnd: () => void; onDelete: () => void }) {
+function SessionActions({
+  session,
+  onQr,
+  onEdit,
+  onEnd,
+  onDelete,
+}: {
+  session: Session;
+  onQr: () => void;
+  onEdit: () => void;
+  onEnd: () => void;
+  onDelete: () => void;
+}) {
   const open = session.status === "SCHEDULED" || session.status === "ACTIVE";
   return (
     <DropdownMenu>
@@ -189,6 +214,12 @@ function SessionActions({ session, onQr, onEnd, onDelete }: { session: Session; 
           <DropdownMenuItem onClick={onEnd}>
             <Square />
             End session
+          </DropdownMenuItem>
+        )}
+        {session.status !== "FINALIZED" && (
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil />
+            Edit details
           </DropdownMenuItem>
         )}
         <DropdownMenuItem render={<Link href={`/sessions/${session.id}/review`} />}>

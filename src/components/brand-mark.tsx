@@ -19,7 +19,7 @@ export function BrandMark({
   wordmark?: boolean;
   className?: string;
   wordmarkClassName?: string;
-  /** Color of "Football". Bright gold suits dark backgrounds; pass a deeper amber on light ones. */
+  /** Color of "Football". Teal suits dark backgrounds; pass `text-brand-text` on light ones. */
   accentClassName?: string;
   priority?: boolean;
 }) {

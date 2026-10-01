@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-/** The form card on the auth pages. The crest lives on the photo panel, so the card leads with a gold kicker. */
+/** The form card on the auth pages. The crest lives on the photo panel, so the card leads with a brand-colored kicker. */
 export function AuthCard({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
     <Card className="relative overflow-hidden border-0 bg-card/85 shadow-xl shadow-black/5 ring-black/5 backdrop-blur-xl dark:bg-card/80 dark:shadow-2xl dark:shadow-black/60 dark:ring-white/10">

@@ -1,18 +1,24 @@
 "use client";
 
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useId } from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatPercent, formatShortDate, formatWeekdayDate, SESSION_TYPE_LABELS } from "@/lib/format";
 import type { TrendPoint } from "@/lib/types";
 import { AXIS_TICK, ChartTooltip } from "./chart-tooltip";
+import { LinearGradient, svgId } from "./gradients";
 
-/** Attendance % over time: one series, so no legend; the card title names it. */
+/** Attendance % over time: one series, so no legend; the card title names it. A gradient wash fades from the line to the baseline. */
 export function TrendChart({ data, groupBy = "session", height = 260 }: { data: TrendPoint[]; groupBy?: "session" | "week"; height?: number }) {
   const rows = data.map((d) => ({ ...d, x: d.date, y: d.percent ?? 0 }));
+  const fillId = `${svgId(useId())}-area`;
 
   return (
     <div style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+        <AreaChart data={rows} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+          <defs>
+            <LinearGradient id={fillId} color="var(--series-1)" direction="vertical" from={100} fromOpacity={0} toOpacity={0.35} />
+          </defs>
           <CartesianGrid vertical={false} stroke="var(--grid)" strokeWidth={1} />
           <XAxis
             dataKey="x"
@@ -41,9 +47,10 @@ export function TrendChart({ data, groupBy = "session", height = 260 }: { data: 
               );
             }}
           />
-          <Line
+          <Area
             type="linear"
             dataKey="y"
+            fill={`url(#${fillId})`}
             stroke="var(--series-1)"
             strokeWidth={2}
             strokeLinecap="round"
@@ -52,7 +59,7 @@ export function TrendChart({ data, groupBy = "session", height = 260 }: { data: 
             activeDot={{ r: 5, fill: "var(--series-1)", stroke: "var(--card)", strokeWidth: 2 }}
             isAnimationActive={false}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

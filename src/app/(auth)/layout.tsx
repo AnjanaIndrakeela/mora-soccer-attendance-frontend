@@ -19,7 +19,7 @@ const FEATURES = [
  * Split-screen auth shell shared by login, sign-up and password reset.
  * The team photo fills a framed panel (a hero banner on phones); the form sits on
  * the theme background (warm off-white, or near-black in dark mode) under a soft
- * gold glow, matching the signed-in app.
+ * teal glow, matching the signed-in app.
  */
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (

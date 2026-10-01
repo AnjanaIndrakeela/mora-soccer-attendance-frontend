@@ -15,6 +15,9 @@
   --color-status-critical: var(--status-critical);
   --color-status-warning: var(--status-warning);
   --color-series-1: var(--series-1);
+  --color-attendance-present: var(--attendance-present);
+  --color-attendance-rejected: var(--attendance-rejected);
+  --color-attendance-absent: var(--attendance-absent);
   --color-grid: var(--grid);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -60,44 +63,50 @@
 }
 
 :root {
-  /* Palette: navy #1F2A44, cream #E8DCC8, gold #C6A75E.
-     Light mode: cream-tinted surfaces, navy text, gold as the primary color. */
-  --background: #f4eee3; /* cream #E8DCC8 lifted toward white for long reading */
-  --foreground: #1f2a44;
-  --card: #fffdf9;
-  --card-foreground: #1f2a44;
-  --popover: #fffdf9;
-  --popover-foreground: #1f2a44;
-  --primary: #c6a75e;
-  --primary-foreground: #1f2a44;
-  --secondary: #e8dcc8;
-  --secondary-foreground: #1f2a44;
-  --muted: #ede4d4;
-  --muted-foreground: #5b6479;
-  --accent: #e8dcc8;
-  --accent-foreground: #1f2a44;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: #e2d6c1;
-  --input: #d9ccb4;
-  --ring: #c6a75e;
-  --chart-1: #2a78d6;
-  --chart-2: #eb6834;
-  --chart-3: #1baf7a;
-  --chart-4: #eda100;
-  --chart-5: #e87ba4;
-  /* Brand: gold on navy. --brand-text is gold dark enough to read on cream. */
-  --brand: #c6a75e;
-  --brand-foreground: #1f2a44;
-  --brand-text: #7a5f22;
-  --navy: #1f2a44;
-  --cream: #e8dcc8;
-  /* Data-viz roles (validated reference palette) */
-  --series-1: #2a78d6;
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
-  --grid: #e2d6c1;
+  /* Palette: teal #08D9D6, charcoal #252A34, pink-red #FF2E63, light gray #EAEAEA.
+     Light mode: gray surfaces, charcoal text, teal as the primary color (charcoal text on teal;
+     teal is too light for white text or for text on light surfaces). */
+  --background: #f1f1f2; /* #EAEAEA lifted slightly for long reading */
+  --foreground: #252a34;
+  --card: #ffffff;
+  --card-foreground: #252a34;
+  --popover: #ffffff;
+  --popover-foreground: #252a34;
+  --primary: #08d9d6;
+  --primary-foreground: #252a34;
+  --secondary: #eaeaea;
+  --secondary-foreground: #252a34;
+  --muted: #e6e7ea;
+  --muted-foreground: #5d6370;
+  --accent: #eaeaea;
+  --accent-foreground: #252a34;
+  --destructive: #d81b4f; /* #FF2E63 deepened to read as text on white */
+  --border: #dcdde1;
+  --input: #cfd1d6;
+  --ring: #08d9d6;
+  --chart-1: #0a9e9b;
+  --chart-2: #ff2e63;
+  --chart-3: #a8365e;
+  --chart-4: #252a34;
+  --chart-5: #08d9d6;
+  /* Brand: teal on charcoal. --brand-text is teal dark enough to read on light gray. */
+  --brand: #08d9d6;
+  --brand-foreground: #252a34;
+  --brand-text: #077a78;
+  --navy: #252a34; /* charcoal for the top bar and photo scrims */
+  --cream: #eaeaea;
+  /* Data-viz and status roles: every color is a shade of the four palette colors.
+     good = teal, serious = deep rose (#FF2E63 toward charcoal), critical = #FF2E63, warning = soft #FF2E63 tint.
+     The donut set (teal / deep rose / pink-red) is validated as all pairs incl. colorblind. */
+  --series-1: #0a9e9b;
+  --attendance-present: #0a9e9b;
+  --attendance-rejected: #a8365e;
+  --attendance-absent: #ff2e63;
+  --status-good: #0a9e9b;
+  --status-warning: #ff8fab;
+  --status-serious: #a8365e;
+  --status-critical: #ff2e63;
+  --grid: #dcdde1;
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -110,41 +119,44 @@
 }
 
 .dark {
-  /* Dark mode: deep navy surfaces built from #1F2A44, cream text, gold primary. */
-  --background: #121a2c;
-  --foreground: #f1ead9;
-  --card: #1a2439;
-  --card-foreground: #f1ead9;
-  --popover: #1f2a44;
-  --popover-foreground: #f1ead9;
-  --primary: #c6a75e;
-  --primary-foreground: #1f2a44;
-  --secondary: #26334f;
-  --secondary-foreground: #f1ead9;
-  --muted: #243049;
-  --muted-foreground: #b3ab9b;
-  --accent: #2b3857;
-  --accent-foreground: #f1ead9;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: rgb(232 220 200 / 12%);
-  --input: rgb(232 220 200 / 18%);
-  --ring: #c6a75e;
-  --chart-1: #3987e5;
-  --chart-2: #d95926;
-  --chart-3: #199e70;
-  --chart-4: #c98500;
-  --chart-5: #d55181;
-  --brand: #c6a75e;
-  --brand-foreground: #1f2a44;
-  --brand-text: #d6bc80;
-  --navy: #1f2a44;
-  --cream: #e8dcc8;
-  --series-1: #3987e5;
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
-  --grid: #2c3854;
+  /* Dark mode: charcoal surfaces built from #252A34, light gray text, teal primary. */
+  --background: #1b1f27;
+  --foreground: #eaeaea;
+  --card: #252a34;
+  --card-foreground: #eaeaea;
+  --popover: #2c323e;
+  --popover-foreground: #eaeaea;
+  --primary: #08d9d6;
+  --primary-foreground: #252a34;
+  --secondary: #2f3542;
+  --secondary-foreground: #eaeaea;
+  --muted: #2c313c;
+  --muted-foreground: #a3a8b3;
+  --accent: #343b49;
+  --accent-foreground: #eaeaea;
+  --destructive: #ff2e63;
+  --border: rgb(234 234 234 / 12%);
+  --input: rgb(234 234 234 / 18%);
+  --ring: #08d9d6;
+  --chart-1: #06a8a5;
+  --chart-2: #ff2e63;
+  --chart-3: #e0668f;
+  --chart-4: #eaeaea;
+  --chart-5: #08d9d6;
+  --brand: #08d9d6;
+  --brand-foreground: #252a34;
+  --brand-text: #08d9d6;
+  --navy: #252a34;
+  --cream: #eaeaea;
+  --series-1: #06a8a5;
+  --attendance-present: #06a8a5;
+  --attendance-rejected: #a8365e;
+  --attendance-absent: #ff2e63;
+  --status-good: #08d9d6;
+  --status-warning: #ff8fab;
+  --status-serious: #e0668f;
+  --status-critical: #ff2e63;
+  --grid: #353b48;
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -166,21 +178,21 @@
     @apply font-sans;
   }
 }
-/* Brand gold gradient (#C6A75E): primary buttons, icon chips and accent lines. */
+/* Top bar: charcoal #252A34, deepening to the left. */
 @utility bg-navy-gradient {
-  background-image: linear-gradient(100deg, #18223a 0%, #1f2a44 45%, #2a3a5e 100%);
+  background-image: linear-gradient(100deg, #191c24 0%, #252a34 50%, #2f3644 100%);
 }
 
-/* Brand gold gradient: primary buttons, icon chips and accent lines. */
+/* Brand gradient (teal #08D9D6): primary buttons, icon chips and accent lines. Charcoal text on it. */
 @utility bg-brand-gradient {
-  background-image: linear-gradient(135deg, #dcc38a 0%, #c6a75e 50%, #a8883f 100%);
+  background-image: linear-gradient(135deg, #4ae8e5 0%, #08d9d6 50%, #06b5b2 100%);
 }
 
-/* Page backdrop: soft gold light top-right, a hint of navy top-left. */
+/* Page backdrop: soft teal light top-right, a hint of pink-red top-left. */
 @utility bg-app-glow {
   background-image:
-    radial-gradient(60rem 28rem at 100% -10%, rgb(198 167 94 / 0.18), transparent 60%),
-    radial-gradient(40rem 22rem at -10% -5%, rgb(31 42 68 / 0.08), transparent 60%);
+    radial-gradient(60rem 28rem at 100% -10%, rgb(8 217 214 / 0.14), transparent 60%),
+    radial-gradient(40rem 22rem at -10% -5%, rgb(255 46 99 / 0.06), transparent 60%);
 }
 
 /* Auth pages: slow photo push-in and the form card rising into place. */

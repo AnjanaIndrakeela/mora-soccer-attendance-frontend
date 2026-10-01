@@ -161,9 +161,11 @@ export interface SessionInput {
 export function useSaveSession(id?: string) {
   const invalidate = useInvalidate();
   return useMutation({
-    mutationFn: (body: SessionInput) =>
+    // Edits may send only the changed fields.
+    mutationFn: (body: SessionInput | Partial<SessionInput>) =>
       api<Session>(id ? `/sessions/${id}` : "/sessions", { method: id ? "PATCH" : "POST", body: { ...body } }),
-    onSuccess: () => invalidate(keys.sessions),
+    // A new date moves the session in the trend and progress stats.
+    onSuccess: () => (id ? invalidate(keys.sessions, keys.stats, keys.players) : invalidate(keys.sessions)),
   });
 }
 

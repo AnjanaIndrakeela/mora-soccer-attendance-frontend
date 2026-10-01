@@ -45,6 +45,14 @@ export function teamToday(): string {
   return fmt({ year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()).split("/").reverse().join("-");
 }
 
+/** Splits a UTC instant into form-input values in the team timezone: { date: "2026-10-01", time: "16:30" }. Inverse of teamTimeToIso. */
+export function toTeamInputs(d: string | Date): { date: string; time: string } {
+  const p = fmt({ year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date(d))
+    .reduce<Record<string, string>>((acc, part) => ({ ...acc, [part.type]: part.value }), {});
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
+}
+
 /** YYYY-MM-DD for a date-only value (stored as UTC midnight). */
 export const toDateInput = (d: string | null | undefined) => (d ? d.slice(0, 10) : "");
 

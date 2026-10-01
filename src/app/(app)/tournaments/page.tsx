@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   MapPin,
+  Pencil,
   Plus,
   Swords,
   Trash2,
@@ -69,6 +70,13 @@ export default function TournamentsPage() {
   const past = useTournaments(false);
   const friendlies = useFriendlies();
   const [addingTournament, setAddingTournament] = useState(false);
+  // Kept after closing so the dialog doesn't flip to "Add" during its exit animation.
+  const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const startEditing = (t: Tournament) => {
+    setEditingTournament(t);
+    setEditOpen(true);
+  };
   const [matchFor, setMatchFor] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Tournament | null>(null);
   const [reportFor, setReportFor] = useState<string | null>(null);
@@ -138,6 +146,7 @@ export default function TournamentsPage() {
                     <CardAction>
                       <TournamentAdminActions
                         onMatch={() => setMatchFor(t.id)}
+                        onEdit={() => startEditing(t)}
                         onDelete={() => setDeleting(t)}
                       />
                     </CardAction>
@@ -182,6 +191,7 @@ export default function TournamentsPage() {
                     <CardAction>
                       <TournamentAdminActions
                         onMatch={() => setMatchFor(t.id)}
+                        onEdit={() => startEditing(t)}
                         onDelete={() => setDeleting(t)}
                       />
                     </CardAction>
@@ -225,6 +235,11 @@ export default function TournamentsPage() {
             open={addingTournament}
             onOpenChange={setAddingTournament}
           />
+          <TournamentDialog
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            tournament={editingTournament}
+          />
           <MatchDialog
             open={matchFor !== null}
             onOpenChange={(open) => !open && setMatchFor(null)}
@@ -264,9 +279,11 @@ export default function TournamentsPage() {
 
 function TournamentAdminActions({
   onMatch,
+  onEdit,
   onDelete,
 }: {
   onMatch: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   return (
@@ -278,6 +295,14 @@ function TournamentAdminActions({
         aria-label="Log a match in this tournament"
       >
         <Swords />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        onClick={onEdit}
+        aria-label="Edit tournament"
+      >
+        <Pencil />
       </Button>
       <Button
         variant="ghost"
